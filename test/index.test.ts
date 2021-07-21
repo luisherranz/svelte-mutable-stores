@@ -255,4 +255,25 @@ describe("Assignments with Member Expresions", () => {
 "
 `);
   });
+  it.only("sample test just to console log and understand what is happening here", async () => {
+    const content = `
+    <svelte:options immutable={true} />
+    <script>
+      console.log("Hello!");
+    </script>
+    <h1>
+      Hello!
+    </h1>
+  `;
+  const { code } = await preprocess(content, preprocessor());
+  console.log(format(code, {parser: "svelte"}));
+  expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`"<svelte:options immutable={false} />
+
+<script>
+  console.log(\\"Hello!\\");
+</script>
+
+<h1>Hello!</h1>
+"`);
+  });
 });
