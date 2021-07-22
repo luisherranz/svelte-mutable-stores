@@ -1,12 +1,4 @@
 const svelte = require('svelte/compiler');
-/**
- * Search assignments that come from a member expression and start with $ and
- * turn them into update calls using immer.
- *
- * @example $x.y = z --> x.update(produce($x => { $x.y = z; }))
- *
- * @returns A Svelte preprocessor object.
- */
 
 /**
  * Find Identifiers that follow the rules of svelte stores syntax.
@@ -18,6 +10,14 @@ const svelte = require('svelte/compiler');
 
 const isValidStore = ({ type, name }) => (type === 'Identifier' && name[0] === '$' && name[1] !== '$');
 
+/**
+ * Search assignments that come from a member expression and start with $ and
+ * turn them into update calls using immer.
+ *
+ * @example $x.y = z --> x.update(produce($x => { $x.y = z; }))
+ *
+ * @returns A Svelte preprocessor object.
+ */
 export default () => ({
   markup({ content }) {
     const ast = svelte.parse(content);
