@@ -1,5 +1,6 @@
 const svelte = require('svelte/compiler');
-
+const MagicString = require( 'magic-string' );
+const produce = require('immer');
 /**
  * Find Identifiers that follow the rules of svelte stores syntax.
  * 
@@ -20,31 +21,37 @@ const isValidStore = ({ type, name }) => (type === 'Identifier' && name[0] === '
  */
 export default () => ({
   markup({ content }) {
+    const string = new MagicString(content);
     const ast = svelte.parse(content);
     let counter = 0;
-    let nestedPropsCounter = 0; 
+    let nestedPropsCounter = 0;
     if (ast.instance) {
         svelte.walk(ast.instance, {
           leave(node) {
             if (node.type === 'AssignmentExpression' && node.operator === '=') {
               const assignee = node.left;
+              const valueAssigned = node.right;
               if (assignee.type === 'MemberExpression' && isValidStore(assignee.object)) {
-               counter++;
+                const leftExpression = string.slice(assignee.start, assignee.end);
+                const rightExpression = string.slice(valueAssigned.start, valueAssigned.end);
+                const completeExpression = `${leftExpression} = ${rightExpression}`;
+               
                // TODO -> Replace the the assigment with a call to immer.
               }
               if (assignee.type === 'MemberExpression' && assignee.object.type === 'MemberExpression') {
                 if (isValidStore(assignee.object.object)) {
                   // TODO -> Replace the the assigment with a call to immer.
-                  nestedPropsCounter++;
+                  const leftExpression = string.slice(assignee.start, assignee.end);
+                  const rightExpression = string.slice(valueAssigned.start, valueAssigned.end);
+                  const completeExpression = `${leftExpression} = ${rightExpression}`;
                 }
               }
-              // this.replace(invalidate(renderer, scope, node, names, execution_context === null));
             }
           }
         });
     }
     return {
-      code: `counter:${counter} - nestedPropsCounter${nestedPropsCounter}`,
+      code: content,
     };
   },
 });
