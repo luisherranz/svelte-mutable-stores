@@ -1,6 +1,5 @@
 const svelte = require('svelte/compiler');
 const MagicString = require( 'magic-string' );
-const produce = require('immer');
 /**
  * Find Identifiers that follow the rules of svelte stores syntax.
  * 
@@ -11,7 +10,22 @@ const produce = require('immer');
 
 const isValidStore = ({ type, name }) => (type === 'Identifier' && name[0] === '$' && name[1] !== '$');
 
-/**
+
+const parseWithImmer = (string, assignee, valueAssigned) => {
+  const leftExpression = string.slice(assignee.start, assignee.end);
+  const rightExpression = string.slice(valueAssigned.start, valueAssigned.end);
+  const completeExpression = `${leftExpression} = ${rightExpression}`;
+  const varName = leftExpression.slice(1,leftExpression.indexOf('.'));
+  const parsedContent = `
+    ${varName}.update(
+      produce(($${varName}) => {
+        ${completeExpression}
+      })
+    )
+  `;
+  string.overwrite(assignee.start, valueAssigned.end, parsedContent);
+}
+ /**
  * Search assignments that come from a member expression and start with $ and
  * turn them into update calls using immer.
  *
@@ -23,8 +37,6 @@ export default () => ({
   markup({ content }) {
     const string = new MagicString(content);
     const ast = svelte.parse(content);
-    let counter = 0;
-    let nestedPropsCounter = 0;
     if (ast.instance) {
         svelte.walk(ast.instance, {
           leave(node) {
@@ -32,18 +44,12 @@ export default () => ({
               const assignee = node.left;
               const valueAssigned = node.right;
               if (assignee.type === 'MemberExpression' && isValidStore(assignee.object)) {
-                const leftExpression = string.slice(assignee.start, assignee.end);
-                const rightExpression = string.slice(valueAssigned.start, valueAssigned.end);
-                const completeExpression = `${leftExpression} = ${rightExpression}`;
-               
-               // TODO -> Replace the the assigment with a call to immer.
+                parseWithImmer(string, assignee, valueAssigned);
               }
               if (assignee.type === 'MemberExpression' && assignee.object.type === 'MemberExpression') {
                 if (isValidStore(assignee.object.object)) {
                   // TODO -> Replace the the assigment with a call to immer.
-                  const leftExpression = string.slice(assignee.start, assignee.end);
-                  const rightExpression = string.slice(valueAssigned.start, valueAssigned.end);
-                  const completeExpression = `${leftExpression} = ${rightExpression}`;
+                  parseWithImmer(string, assignee, valueAssigned);
                 }
               }
             }
@@ -51,7 +57,7 @@ export default () => ({
         });
     }
     return {
-      code: content,
+      code: string.toString(),
     };
   },
 });

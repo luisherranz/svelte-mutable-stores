@@ -259,7 +259,7 @@ describe("Assignments with Member Expresions", () => {
     const content = `
     <svelte:options immutable={true} />
     <script>
-      $x.y = z;
+      $xe.y = z;
       $x.y.z = w;
       $x.y = z;
       $x.y.z = w;
@@ -278,8 +278,64 @@ describe("Assignments with Member Expresions", () => {
   `;
     const { code } = await preprocess(content, preprocessor());
     expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
-      "counter:5 - nestedPropsCounter3
-      "
-    `);
+"<svelte:options immutable={true} />
+
+<script>
+  xe.update(
+    produce(($xe) => {
+      $xe.y = z;
+    })
+  );
+
+  x.update(
+    produce(($x) => {
+      $x.y.z = w;
+    })
+  );
+
+  x.update(
+    produce(($x) => {
+      $x.y = z;
+    })
+  );
+
+  x.update(
+    produce(($x) => {
+      $x.y.z = w;
+    })
+  );
+  $x = z;
+  x.y = z;
+
+  o.update(
+    produce(($o) => {
+      $o.p = s;
+    })
+  );
+  $$x.y = z;
+
+  x.update(
+    produce(($x) => {
+      $x.a = b;
+    })
+  );
+
+  z.update(
+    produce(($z) => {
+      $z.a = c;
+    })
+  );
+  $$x = y;
+
+  x.update(
+    produce(($x) => {
+      $x.y.f = s;
+    })
+  );
+</script>
+
+<h1>Hello!</h1>
+"
+`);
   });
 });
