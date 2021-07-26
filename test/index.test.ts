@@ -1,18 +1,18 @@
-import { preprocess } from "svelte/compiler";
-import { format } from "prettier";
-import preprocessor from "../src/index";
+import { preprocess } from 'svelte/compiler';
+import { format } from 'prettier';
+import preprocessor from '../src/index';
 
-describe("Assignments with Member Expresions", () => {
+describe('Assignments with Member Expresions', () => {
   it("shouldn't add anything when there's no script", async () => {
-    const content = "";
+    const content = '';
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`""`);
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`""`);
   });
 
   it("shouldn't add anything when there's an empty script", async () => {
-    const content = "<script></script>";
+    const content = '<script></script>';
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script></script>
       "
     `);
@@ -25,7 +25,7 @@ describe("Assignments with Member Expresions", () => {
       <style>div { color: blue; }</style>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script></script>
 
       <div>HTML content</div>
@@ -46,7 +46,7 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
         x = y;
       </script>
@@ -61,7 +61,7 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
         $x = y;
       </script>
@@ -76,7 +76,7 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
         $$x = y;
       </script>
@@ -84,14 +84,14 @@ describe("Assignments with Member Expresions", () => {
     `);
   });
 
-  it("should switch to update with produce when there is a store with prop assignment", async () => {
+  it('should switch to update with produce when there is a store with prop assignment', async () => {
     const content = `
       <script>
         $x.y = z;
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
         import { produce } from \\"immer\\";
 
@@ -105,7 +105,7 @@ describe("Assignments with Member Expresions", () => {
     `);
   });
 
-  it("should switch to update when the assignment is inside a function", async () => {
+  it('should switch to update when the assignment is inside a function', async () => {
     const content = `
       <script>
         function replace1() {
@@ -118,7 +118,7 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
         import { produce } from \\"immer\\";
 
@@ -154,7 +154,7 @@ describe("Assignments with Member Expresions", () => {
       </button>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
         import { produce } from \\"immer\\";
 
@@ -184,7 +184,7 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
         import { produce } from \\"immer\\";
 
@@ -204,7 +204,7 @@ describe("Assignments with Member Expresions", () => {
     `);
   });
 
-  it("should respect other code around the assignments", async () => {
+  it('should respect other code around the assignments', async () => {
     const content = `
       <script>
         import otherImport from "other-module";
@@ -219,8 +219,9 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
+
         import { produce } from \\"immer\\";
 
         import otherImport from \\"other-module\\";
@@ -254,88 +255,5 @@ describe("Assignments with Member Expresions", () => {
       </script>
       "
     `);
-  });
-  it.only("sample test just to console log and understand what is happening here", async () => {
-    const content = `
-    <svelte:options immutable={true} />
-    <script>
-      $xe.y = z;
-      $x.y.z = w;
-      $x.y = z;
-      $x.y.z = w;
-      $x = z; 
-      x.y = z; 
-      $o.p = s;
-      $$x.y = z;
-      $x.a = b;
-      $z.a = c;
-      $$x = y;
-      $x.y.f = s;
-    </script>
-    <h1>
-      Hello!
-    </h1>
-  `;
-    const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
-"<svelte:options immutable={true} />
-
-<script>
-  xe.update(
-    produce(($xe) => {
-      $xe.y = z;
-    })
-  );
-
-  x.update(
-    produce(($x) => {
-      $x.y.z = w;
-    })
-  );
-
-  x.update(
-    produce(($x) => {
-      $x.y = z;
-    })
-  );
-
-  x.update(
-    produce(($x) => {
-      $x.y.z = w;
-    })
-  );
-  $x = z;
-  x.y = z;
-
-  o.update(
-    produce(($o) => {
-      $o.p = s;
-    })
-  );
-  $$x.y = z;
-
-  x.update(
-    produce(($x) => {
-      $x.a = b;
-    })
-  );
-
-  z.update(
-    produce(($z) => {
-      $z.a = c;
-    })
-  );
-  $$x = y;
-
-  x.update(
-    produce(($x) => {
-      $x.y.f = s;
-    })
-  );
-</script>
-
-<h1>Hello!</h1>
-"
-`);
   });
 });
