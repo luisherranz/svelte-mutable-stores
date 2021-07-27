@@ -92,17 +92,17 @@ describe('Assignments with Member Expresions', () => {
     `;
     const { code } = await preprocess(content, preprocessor());
     expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
-      "<script>
-        import { produce } from \\"immer\\";
+"<script>
+  import { produce as svelteMutableStoresProduce } from \\"immer\\";
 
-        x.update(
-          produce(($x) => {
-            $x.y = z;
-          })
-        );
-      </script>
-      "
-    `);
+  x.update(
+    svelteMutableStoresProduce((x) => {
+      x.y = z;
+    })
+  );
+</script>
+"
+`);
   });
 
   it('should switch to update when the assignment is inside a function', async () => {
@@ -119,27 +119,26 @@ describe('Assignments with Member Expresions', () => {
     `;
     const { code } = await preprocess(content, preprocessor());
     expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
-      "<script>
-        import { produce } from \\"immer\\";
+"<script>
+  import { produce as svelteMutableStoresProduce } from \\"immer\\";
+  function replace1() {
+    x.update(
+      svelteMutableStoresProduce((x) => {
+        x.y = z;
+      })
+    );
+  }
 
-        function replace1() {
-          x.update(
-            produce(($x) => {
-              $x.y = z;
-            })
-          );
-        }
-
-        const replace2 = () => {
-          x.update(
-            produce(($x) => {
-              $x.y = z;
-            })
-          );
-        };
-      </script>
-      "
-    `);
+  const replace2 = () => {
+    x.update(
+      svelteMutableStoresProduce((x) => {
+        x.y = z;
+      })
+    );
+  };
+</script>
+"
+`);
   });
 
   // TODO: Maybe allow this?
@@ -156,11 +155,11 @@ describe('Assignments with Member Expresions', () => {
     const { code } = await preprocess(content, preprocessor());
     expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
-        import { produce } from \\"immer\\";
+        import { produce as svelteMutableStoresProduce } from \\"immer\\";
 
         x.update(
-          produce(($x) => {
-            $x.y = z;
+          svelteMutableStoresProduce((x) => {
+            x.y = z;
           })
         );
       </script>
@@ -186,17 +185,17 @@ describe('Assignments with Member Expresions', () => {
     const { code } = await preprocess(content, preprocessor());
     expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
-        import { produce } from \\"immer\\";
+        import { produce as svelteMutableStoresProduce } from \\"immer\\";
 
         x.update(
-          produce(($x) => {
-            $x.a = y;
+          svelteMutableStoresProduce((x) => {
+            x.a = y;
           })
         );
 
         x.update(
-          produce(($x) => {
-            $x.b.c = z;
+          svelteMutableStoresProduce((x) => {
+            x.b.c = z;
           })
         );
       </script>
@@ -221,37 +220,55 @@ describe('Assignments with Member Expresions', () => {
     const { code } = await preprocess(content, preprocessor());
     expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
       "<script>
-
-        import { produce } from \\"immer\\";
-
+        import { produce as svelteMutableStoresProduce } from \\"immer\\";
         import otherImport from \\"other-module\\";
+
         x.a = y;
 
         x.update(
-          produce(($x) => {
-            $x.a.b = y;
+          svelteMutableStoresProduce((x) => {
+            x.a.b = y;
           })
         );
-
         $x = y;
 
         x.update(
-          produce(($x) => {
-            $x.a = y;
+          svelteMutableStoresProduce((x) => {
+            x.a = y;
           })
         );
-
         function fn() {
           return \\"hi\\";
         }
 
         x.update(
-          produce(($x) => {
-            $x.a.b.c = y;
+          svelteMutableStoresProduce((x) => {
+            x.a.b.c = y;
           })
         );
-
         otherImport(y);
+      </script>
+      "
+    `);
+  });
+  it('should use default produce immer function if is already declared', async () => {
+    const content = `
+      <script>
+        import { produce } from "immer";
+
+        $x.y = z;
+      </script>
+    `;
+    const { code } = await preprocess(content, preprocessor());
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+      "<script>
+        import { produce } from \\"immer\\";
+
+        x.update(
+          produce((x) => {
+            x.y = z;
+          })
+        );
       </script>
       "
     `);

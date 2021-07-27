@@ -36,15 +36,21 @@ const isValidStore = (store: string): boolean =>
 const parseWithImmer = (
   string: MagicString,
   assignee: LocatedMemberExpression,
-  valueAssigned: LocatedIdentifier
+  valueAssigned: LocatedIdentifier,
+  defaultProduceImmerImported: boolean
 ) => {
   const leftExpression = string.slice(assignee.start, assignee.end);
   const rightExpression = string.slice(valueAssigned.start, valueAssigned.end);
-  const completeExpression = `${leftExpression} = ${rightExpression}`;
+  const completeExpression = `${leftExpression.slice(
+    1,
+    leftExpression.length
+  )} = ${rightExpression}`;
   const varName = leftExpression.slice(1, leftExpression.indexOf('.'));
   const parsedContent = `
     ${varName}.update(
-      produce(($${varName}) => {
+      ${
+        defaultProduceImmerImported ? 'produce' : 'svelteMutableStoresProduce'
+      }((${varName}) => {
         ${completeExpression}
       })
     )
@@ -64,7 +70,8 @@ export default () => ({
   markup({ content }) {
     const string = new MagicString(content);
     const ast = svelte.parse(content);
-    let produceFunctionFromImmerAlreadyImported = false;
+    let defaultProduceImmerImported = false;
+    let haveToImportImmer = false;
     if (ast.instance) {
       svelte.walk(ast.instance, {
         leave(node: Node) {
@@ -77,7 +84,7 @@ export default () => ({
             const library = node.source.value;
             if (library === 'immer') {
               if (specifiers.includes('produce')) {
-                produceFunctionFromImmerAlreadyImported = true;
+                defaultProduceImmerImported = true;
               }
             }
           }
@@ -88,20 +95,25 @@ export default () => ({
               isMemberExpression(node.left) &&
               isIdentifier(node.right)
             ) {
-              if (!produceFunctionFromImmerAlreadyImported) {
-                string.prependLeft(
-                  node.left.start,
-                  'import { produce } from "immer"'
-                );
-                produceFunctionFromImmerAlreadyImported = true;
-                // TODO: Move the import to the top of the script part.
-                // TODO: attach produce if we have already a not default function importing from immer
+              if (!defaultProduceImmerImported && !haveToImportImmer) {
+                haveToImportImmer = true;
               }
-              parseWithImmer(string, node.left, node.right);
+              parseWithImmer(
+                string,
+                node.left,
+                node.right,
+                defaultProduceImmerImported
+              );
             }
           }
         },
       });
+    }
+    if (haveToImportImmer) {
+      string.appendRight(
+        content.indexOf('<script>') + '<script>'.length,
+        'import { produce as svelteMutableStoresProduce } from "immer";'
+      );
     }
     return {
       code: string.toString(),
