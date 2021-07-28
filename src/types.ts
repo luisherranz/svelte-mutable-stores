@@ -16,7 +16,7 @@ export interface LocatedIdentifier extends Identifier {
 }
 
 /**
- * Typeguard to assert if a node is an assignment.
+ * Typeguard to assert if a node is a Member Expression and add start and end attributes.
  *
  * @example x = y
  *
@@ -28,7 +28,7 @@ export const isMemberExpression = (
 ): node is LocatedMemberExpression => node.type === 'MemberExpression';
 
 /**
- * Typeguard to assert if a node is an assignment.
+ * Typeguard to assert if a node is an Identifier and add start and end attributes.
  *
  * @example x = y
  *
