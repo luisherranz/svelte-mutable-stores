@@ -251,26 +251,4 @@ describe('Assignments with Member Expresions', () => {
       "
     `);
   });
-  it('should use default produce immer function if is already declared', async () => {
-    const content = `
-      <script>
-        import { produce } from "immer";
-
-        $x.y = z;
-      </script>
-    `;
-    const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
-      "<script>
-        import { produce } from \\"immer\\";
-
-        x.update(
-          produce((x) => {
-            x.y = z;
-          })
-        );
-      </script>
-      "
-    `);
-  });
 });

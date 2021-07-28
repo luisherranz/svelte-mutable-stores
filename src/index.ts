@@ -36,8 +36,7 @@ const isValidStore = (store: string): boolean =>
 const parseWithImmer = (
   string: MagicString,
   assignee: LocatedMemberExpression,
-  valueAssigned: LocatedIdentifier,
-  defaultProduceImmerImported: boolean
+  valueAssigned: LocatedIdentifier
 ) => {
   const leftExpression = string.slice(assignee.start, assignee.end);
   const rightExpression = string.slice(valueAssigned.start, valueAssigned.end);
@@ -48,9 +47,8 @@ const parseWithImmer = (
   const varName = leftExpression.slice(1, leftExpression.indexOf('.'));
   const parsedContent = `
     ${varName}.update(
-      ${
-        defaultProduceImmerImported ? 'produce' : 'svelteMutableStoresProduce'
-      }((${varName}) => {
+      svelteMutableStoresProduce
+      ((${varName}) => {
         ${completeExpression}
       })
     )
@@ -70,24 +68,10 @@ export default () => ({
   markup({ content }) {
     const string = new MagicString(content);
     const ast = svelte.parse(content);
-    let defaultProduceImmerImported = false;
     let haveToImportImmer = false;
     if (ast.instance) {
       svelte.walk(ast.instance, {
-        leave(node: Node) {
-          if (node.type === 'ImportDeclaration') {
-            const specifiers = node.specifiers.map((specifier) =>
-              specifier.type === 'ImportSpecifier'
-                ? specifier.imported.name
-                : specifier.local.name
-            );
-            const library = node.source.value;
-            if (library === 'immer') {
-              if (specifiers.includes('produce')) {
-                defaultProduceImmerImported = true;
-              }
-            }
-          }
+        enter(node: Node) {
           if (isAssignmentExpression(node) && node.operator === '=') {
             const [store] = Array.from(extract_names(node.left));
             if (
@@ -95,15 +79,10 @@ export default () => ({
               isMemberExpression(node.left) &&
               isIdentifier(node.right)
             ) {
-              if (!defaultProduceImmerImported && !haveToImportImmer) {
+              if (!haveToImportImmer) {
                 haveToImportImmer = true;
               }
-              parseWithImmer(
-                string,
-                node.left,
-                node.right,
-                defaultProduceImmerImported
-              );
+              parseWithImmer(string, node.left, node.right);
             }
           }
         },
