@@ -41,14 +41,15 @@ const parseWithImmer = (
   const leftExpression = string.slice(assignee.start, assignee.end);
   const rightExpression = string.slice(valueAssigned.start, valueAssigned.end);
   const completeExpression = `${leftExpression.slice(
-    1,
+    0,
     leftExpression.length
   )} = ${rightExpression}`;
   const varName = leftExpression.slice(1, leftExpression.indexOf('.'));
+  const storeExpression = leftExpression.slice(0, leftExpression.indexOf('.'));
   const parsedContent = `
     ${varName}.update(
       svelteMutableStoresProduce
-      ((${varName}) => {
+      ((${storeExpression}) => {
         ${completeExpression}
       })
     )

@@ -96,8 +96,8 @@ describe('Assignments with Member Expresions', () => {
   import { produce as svelteMutableStoresProduce } from \\"immer\\";
 
   x.update(
-    svelteMutableStoresProduce((x) => {
-      x.y = z;
+    svelteMutableStoresProduce(($x) => {
+      $x.y = z;
     })
   );
 </script>
@@ -123,16 +123,16 @@ describe('Assignments with Member Expresions', () => {
   import { produce as svelteMutableStoresProduce } from \\"immer\\";
   function replace1() {
     x.update(
-      svelteMutableStoresProduce((x) => {
-        x.y = z;
+      svelteMutableStoresProduce(($x) => {
+        $x.y = z;
       })
     );
   }
 
   const replace2 = () => {
     x.update(
-      svelteMutableStoresProduce((x) => {
-        x.y = z;
+      svelteMutableStoresProduce(($x) => {
+        $x.y = z;
       })
     );
   };
@@ -158,8 +158,8 @@ describe('Assignments with Member Expresions', () => {
         import { produce as svelteMutableStoresProduce } from \\"immer\\";
 
         x.update(
-          svelteMutableStoresProduce((x) => {
-            x.y = z;
+          svelteMutableStoresProduce(($x) => {
+            $x.y = z;
           })
         );
       </script>
@@ -188,14 +188,14 @@ describe('Assignments with Member Expresions', () => {
         import { produce as svelteMutableStoresProduce } from \\"immer\\";
 
         x.update(
-          svelteMutableStoresProduce((x) => {
-            x.a = y;
+          svelteMutableStoresProduce(($x) => {
+            $x.a = y;
           })
         );
 
         x.update(
-          svelteMutableStoresProduce((x) => {
-            x.b.c = z;
+          svelteMutableStoresProduce(($x) => {
+            $x.b.c = z;
           })
         );
       </script>
@@ -226,15 +226,15 @@ describe('Assignments with Member Expresions', () => {
         x.a = y;
 
         x.update(
-          svelteMutableStoresProduce((x) => {
-            x.a.b = y;
+          svelteMutableStoresProduce(($x) => {
+            $x.a.b = y;
           })
         );
         $x = y;
 
         x.update(
-          svelteMutableStoresProduce((x) => {
-            x.a = y;
+          svelteMutableStoresProduce(($x) => {
+            $x.a = y;
           })
         );
         function fn() {
@@ -242,8 +242,8 @@ describe('Assignments with Member Expresions', () => {
         }
 
         x.update(
-          svelteMutableStoresProduce((x) => {
-            x.a.b.c = y;
+          svelteMutableStoresProduce(($x) => {
+            $x.a.b.c = y;
           })
         );
         otherImport(y);
