@@ -1,21 +1,21 @@
-import { preprocess } from "svelte/compiler";
-import { format } from "prettier";
-import preprocessor from "../src/index";
+import { preprocess } from 'svelte/compiler';
+import { format } from 'prettier';
+import preprocessor from '../src/index';
 
-describe("Assignments with Member Expresions", () => {
+describe('Assignments with Member Expresions', () => {
   it("shouldn't add anything when there's no script", async () => {
-    const content = "";
+    const content = '';
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`""`);
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`""`);
   });
 
   it("shouldn't add anything when there's an empty script", async () => {
-    const content = "<script></script>";
+    const content = '<script></script>';
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
-"<script></script>
-"
-`);
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+      "<script></script>
+      "
+    `);
   });
 
   it("shouldn't add anything when there's an empty script, HTML and styles", async () => {
@@ -25,18 +25,18 @@ describe("Assignments with Member Expresions", () => {
       <style>div { color: blue; }</style>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
-"<script></script>
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+      "<script></script>
 
-<div>HTML content</div>
+      <div>HTML content</div>
 
-<style>
-  div {
-    color: blue;
-  }
-</style>
-"
-`);
+      <style>
+        div {
+          color: blue;
+        }
+      </style>
+      "
+    `);
   });
 
   it("shouldn't add anything when there is an assignment that is not a store", async () => {
@@ -46,12 +46,12 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
-"<script>
-  x = y;
-</script>
-"
-`);
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+      "<script>
+        x = y;
+      </script>
+      "
+    `);
   });
 
   it("shouldn't add anything when there is an assignment that is not a member", async () => {
@@ -61,12 +61,12 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
-"<script>
-  $x = y;
-</script>
-"
-`);
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+      "<script>
+        $x = y;
+      </script>
+      "
+    `);
   });
 
   it("shouldn't add anything when there is a double $$", async () => {
@@ -76,27 +76,27 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
-"<script>
-  $$x = y;
-</script>
-"
-`);
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+      "<script>
+        $$x = y;
+      </script>
+      "
+    `);
   });
 
-  it("should switch to update with produce when there is a store with prop assignment", async () => {
+  it('should switch to update with produce when there is a store with prop assignment', async () => {
     const content = `
       <script>
         $x.y = z;
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
 "<script>
-  import { produce } from \\"immer\\";
+  import { produce as svelteMutableStoresProduce } from \\"immer\\";
 
   x.update(
-    produce(($x) => {
+    svelteMutableStoresProduce(($x) => {
       $x.y = z;
     })
   );
@@ -105,7 +105,7 @@ describe("Assignments with Member Expresions", () => {
 `);
   });
 
-  it("should switch to update when the assignment is inside a function", async () => {
+  it('should switch to update when the assignment is inside a function', async () => {
     const content = `
       <script>
         function replace1() {
@@ -118,13 +118,12 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
 "<script>
-  import { produce } from \\"immer\\";
-
+  import { produce as svelteMutableStoresProduce } from \\"immer\\";
   function replace1() {
     x.update(
-      produce(($x) => {
+      svelteMutableStoresProduce(($x) => {
         $x.y = z;
       })
     );
@@ -132,7 +131,7 @@ describe("Assignments with Member Expresions", () => {
 
   const replace2 = () => {
     x.update(
-      produce(($x) => {
+      svelteMutableStoresProduce(($x) => {
         $x.y = z;
       })
     );
@@ -154,26 +153,26 @@ describe("Assignments with Member Expresions", () => {
       </button>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
-"<script>
-  import { produce } from \\"immer\\";
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+      "<script>
+        import { produce as svelteMutableStoresProduce } from \\"immer\\";
 
-  x.update(
-    produce(($x) => {
-      $x.y = z;
-    })
-  );
-</script>
+        x.update(
+          svelteMutableStoresProduce(($x) => {
+            $x.y = z;
+          })
+        );
+      </script>
 
-<button
-  on:click={() => {
-    $x.y = z;
-  }}
->
-  Click me
-</button>
-"
-`);
+      <button
+        on:click={() => {
+          $x.y = z;
+        }}
+      >
+        Click me
+      </button>
+      "
+    `);
   });
 
   it("shouldn't add the import twice when there are more than one assignment", async () => {
@@ -184,27 +183,27 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
-"<script>
-  import { produce } from \\"immer\\";
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+      "<script>
+        import { produce as svelteMutableStoresProduce } from \\"immer\\";
 
-  x.update(
-    produce(($x) => {
-      $x.a = y;
-    })
-  );
+        x.update(
+          svelteMutableStoresProduce(($x) => {
+            $x.a = y;
+          })
+        );
 
-  x.update(
-    produce(($x) => {
-      $x.b.c = z;
-    })
-  );
-</script>
-"
-`);
+        x.update(
+          svelteMutableStoresProduce(($x) => {
+            $x.b.c = z;
+          })
+        );
+      </script>
+      "
+    `);
   });
 
-  it("should respect other code around the assignments", async () => {
+  it('should respect other code around the assignments', async () => {
     const content = `
       <script>
         import otherImport from "other-module";
@@ -219,38 +218,117 @@ describe("Assignments with Member Expresions", () => {
       </script>
     `;
     const { code } = await preprocess(content, preprocessor());
-    expect(format(code, { parser: "svelte" })).toMatchInlineSnapshot(`
-"<script>
-  import { produce } from \\"immer\\";
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+      "<script>
+        import { produce as svelteMutableStoresProduce } from \\"immer\\";
+        import otherImport from \\"other-module\\";
 
-  import otherImport from \\"other-module\\";
-  x.a = y;
+        x.a = y;
+
+        x.update(
+          svelteMutableStoresProduce(($x) => {
+            $x.a.b = y;
+          })
+        );
+        $x = y;
+
+        x.update(
+          svelteMutableStoresProduce(($x) => {
+            $x.a = y;
+          })
+        );
+        function fn() {
+          return \\"hi\\";
+        }
+
+        x.update(
+          svelteMutableStoresProduce(($x) => {
+            $x.a.b.c = y;
+          })
+        );
+        otherImport(y);
+      </script>
+      "
+    `);
+  });
+  it('should allow any type of assignments', async () => {
+    const content = `
+      <script>
+        $x.y = z; 
+        $x.y = "z";
+        $x.y = 1;
+        $x.y = {};
+        $x.a.b = y;
+        $x.a = 'a';
+        $x.a.b.c = 'd';
+        $x.a.b = () => { do_something(); return true; };
+        $x.a.b = function(){do_something(); return true};
+      </script>
+    `;
+    const { code } = await preprocess(content, preprocessor());
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+"<script>
+  import { produce as svelteMutableStoresProduce } from \\"immer\\";
 
   x.update(
-    produce(($x) => {
+    svelteMutableStoresProduce(($x) => {
+      $x.y = z;
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.y = \\"z\\";
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.y = 1;
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.y = {};
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
       $x.a.b = y;
     })
   );
 
-  $x = y;
-
   x.update(
-    produce(($x) => {
-      $x.a = y;
+    svelteMutableStoresProduce(($x) => {
+      $x.a = \\"a\\";
     })
   );
 
-  function fn() {
-    return \\"hi\\";
-  }
-
   x.update(
-    produce(($x) => {
-      $x.a.b.c = y;
+    svelteMutableStoresProduce(($x) => {
+      $x.a.b.c = \\"d\\";
     })
   );
 
-  otherImport(y);
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.a.b = () => {
+        do_something();
+        return true;
+      };
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.a.b = function () {
+        do_something();
+        return true;
+      };
+    })
+  );
 </script>
 "
 `);
