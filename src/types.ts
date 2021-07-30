@@ -1,18 +1,13 @@
-import {
-  AssignmentExpression,
-  Node,
-  MemberExpression,
-  Identifier,
-} from 'estree';
+import { AssignmentExpression, Node, MemberExpression, BaseNode } from 'estree';
 
 export interface LocatedMemberExpression extends MemberExpression {
   start: number;
   end: number;
 }
 
-export interface LocatedIdentifier extends Identifier {
-  start: number;
-  end: number;
+export interface LocatedNode extends BaseNode {
+  start?: number;
+  end?: number;
 }
 
 /**
@@ -26,17 +21,6 @@ export interface LocatedIdentifier extends Identifier {
 export const isMemberExpression = (
   node: Node
 ): node is LocatedMemberExpression => node.type === 'MemberExpression';
-
-/**
- * Typeguard to assert if a node is an Identifier and add start and end attributes.
- *
- * @example x = y
- *
- * @param node - The asserted node.
- * @returns Whether is an assignment or not.
- */
-export const isIdentifier = (node: Node): node is LocatedIdentifier =>
-  node.type === 'Identifier';
 
 /**
  * Typeguard to assert if a node is an assignment.

@@ -1,14 +1,13 @@
 import * as svelte from 'svelte/compiler';
 import MagicString from 'magic-string';
 
-import { Node } from 'estree';
+import { Node, BaseNode, BaseExpression, BasePattern } from 'estree';
 import { extract_names } from 'periscopic';
 import {
   isAssignmentExpression,
-  isIdentifier,
   isMemberExpression,
-  LocatedIdentifier,
   LocatedMemberExpression,
+  LocatedNode,
 } from './types';
 
 /**
@@ -36,7 +35,7 @@ const isValidStore = (store: string): boolean =>
 const parseWithImmer = (
   string: MagicString,
   assignee: LocatedMemberExpression,
-  valueAssigned: LocatedIdentifier
+  valueAssigned: LocatedNode
 ) => {
   const leftExpression = string.slice(assignee.start, assignee.end);
   const rightExpression = string.slice(valueAssigned.start, valueAssigned.end);
@@ -75,11 +74,7 @@ export default () => ({
         enter(node: Node) {
           if (isAssignmentExpression(node) && node.operator === '=') {
             const [store] = Array.from(extract_names(node.left));
-            if (
-              isValidStore(store) &&
-              isMemberExpression(node.left) &&
-              isIdentifier(node.right)
-            ) {
+            if (isValidStore(store) && isMemberExpression(node.left)) {
               if (!haveToImportImmer) {
                 haveToImportImmer = true;
               }

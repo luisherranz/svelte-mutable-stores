@@ -251,4 +251,86 @@ describe('Assignments with Member Expresions', () => {
       "
     `);
   });
+  it('should allow any type of assignments', async () => {
+    const content = `
+      <script>
+        $x.y = z; 
+        $x.y = "z";
+        $x.y = 1;
+        $x.y = {};
+        $x.a.b = y;
+        $x.a = 'a';
+        $x.a.b.c = 'd';
+        $x.a.b = () => { do_something(); return true; };
+        $x.a.b = function(){do_something(); return true};
+      </script>
+    `;
+    const { code } = await preprocess(content, preprocessor());
+    expect(format(code, { parser: 'svelte' })).toMatchInlineSnapshot(`
+"<script>
+  import { produce as svelteMutableStoresProduce } from \\"immer\\";
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.y = z;
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.y = \\"z\\";
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.y = 1;
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.y = {};
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.a.b = y;
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.a = \\"a\\";
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.a.b.c = \\"d\\";
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.a.b = () => {
+        do_something();
+        return true;
+      };
+    })
+  );
+
+  x.update(
+    svelteMutableStoresProduce(($x) => {
+      $x.a.b = function () {
+        do_something();
+        return true;
+      };
+    })
+  );
+</script>
+"
+`);
+  });
 });
